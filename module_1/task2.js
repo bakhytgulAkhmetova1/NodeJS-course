@@ -40,9 +40,17 @@ function processFile() {
     const writeStream = fs.createWriteStream('file2.txt');
     const lineReader = readline.createInterface({ input: csv(csvOptions).fromStream(readStream) });
 
-    lineReader.on('line', function (line) {
-        writeStream.write(line + '\r\n')
-    });
+    // lineReader.on('line', function (line) {
+    //     writeStream.write(line + '\r\n')
+    // });
+
+    pipeline(
+        csv(csvOptions).fromStream(readStream),
+        writeStream,
+        () => {
+            
+        }
+    );
 }
 
 processFile();
