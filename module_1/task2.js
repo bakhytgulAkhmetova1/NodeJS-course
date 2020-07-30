@@ -1,8 +1,7 @@
 const fs = require('fs');
 const csv = require('csvtojson');
-const zlib = require('zlib');
-const { pipeline } = require('stream');
 const readline = require('readline');
+const { pipeline } = require('stream');
 
 const CSV_PATH = './csv/books.csv';
 const csvOptions = {
@@ -18,10 +17,10 @@ const csvOptions = {
 
 csv(csvOptions).fromFile(CSV_PATH)
     .then((csvObject) => {
-        const cities = formattedData(csvObject);
-        fs.writeFile('cities.txt', cities, (error) => {
+        const books = formattedData(csvObject);
+        fs.writeFileSync('file1.txt', books, (error) => {
             if (error) {
-                //handle error
+                console.log(`error: ${error}`);
             }
         })
     });
@@ -35,23 +34,31 @@ const formattedData = (data) => {
 
 //Do not load all content into RAM
 
-function processFile() {
-    const readStream = fs.createReadStream(CSV_PATH);
-    const writeStream = fs.createWriteStream('file2.txt');
+//readline method
+
+function processFileReadline(readStream, writeStream) {
     const lineReader = readline.createInterface({ input: csv(csvOptions).fromStream(readStream) });
 
-    // lineReader.on('line', function (line) {
-    //     writeStream.write(line + '\r\n')
-    // });
+    lineReader.on('line', function (line) {
+        writeStream.write(line + '\r\n')
+    });
+}
 
+//pipeline method
+
+function processFilePipeline(readStream, writeStream) {
     pipeline(
         csv(csvOptions).fromStream(readStream),
         writeStream,
-        () => {
-            
+        (error) => {
+            console.log(`error: ${error}`);
         }
     );
 }
 
-processFile();
+const readStream = fs.createReadStream(CSV_PATH);
+const writeStreamReadline = fs.createWriteStream('file2.txt');
+const writeStreamPipeline = fs.createWriteStream('file3.txt');
 
+processFileReadline(readStream, writeStreamReadline);
+processFilePipeline(readStream, writeStreamPipeline);
